@@ -1,6 +1,8 @@
-package models
+package reviewable
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 type Review struct {
 	gorm.Model

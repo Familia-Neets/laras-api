@@ -1,6 +1,8 @@
-package models
+package users
 
 import (
+	"Lara/models/reviewable"
+
 	"gorm.io/gorm"
 )
 
@@ -11,19 +13,19 @@ type User struct {
 	Email    string `json:"email" gorm:"unique; not null"`
 	Password string `json:"password" gorm:"not null"`
 
-	Reviews  []*Review         `json:"reviews"`
-	PlanTo   []*UserReviewable `json:"plan_to" gorm:"foreignKey:UserID"`
-	Current  []*UserReviewable `json:"current" gorm:"foreignKey:UserID"`
-	Finished []*UserReviewable `json:"finished" gorm:"foreignKey:UserID"`
+	Reviews  []*reviewable.Review `json:"reviews"`
+	PlanTo   []*UserReviewable    `json:"plan_to" gorm:"foreignKey:UserID"`
+	Current  []*UserReviewable    `json:"current" gorm:"foreignKey:UserID"`
+	Finished []*UserReviewable    `json:"finished" gorm:"foreignKey:UserID"`
 
-	Likes []*Like `json:"likes" gorm:"foreignKey:UserID"`
+	Likes []*reviewable.Like `json:"likes" gorm:"foreignKey:UserID"`
 }
 
 func (u *User) GetID() uint {
 	return u.ID
 }
 
-func (u *User) GetReviews() []*Review {
+func (u *User) GetReviews() []*reviewable.Review {
 	return u.Reviews
 }
 
@@ -51,6 +53,6 @@ func (u *User) GetStats() map[string]int {
 	return dict
 }
 
-func (u *User) GetLikes() []*Like {
+func (u *User) GetLikes() []*reviewable.Like {
 	return u.Likes
 }

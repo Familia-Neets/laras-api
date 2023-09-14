@@ -1,4 +1,4 @@
-package models
+package reviewable
 
 import "gorm.io/gorm"
 

@@ -3,6 +3,7 @@ package controllers
 import (
 	"Lara/helpers"
 	"Lara/models"
+	"Lara/models/reviewable"
 	"net/http"
 	"reflect"
 
@@ -190,7 +191,7 @@ func (cc *ContentController) ReadReviews(c *gin.Context) {
 		return
 	}
 
-	var reviews []models.Review
+	var reviews []reviewable.Review
 	if err := models.Db.Where("reviewable_id = ? AND reviewable_type = ?", content_id, content.GetType()).Find(&reviews).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

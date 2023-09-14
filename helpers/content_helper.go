@@ -1,37 +1,38 @@
 package helpers
 
 import (
-	"Lara/models"
+	"Lara/models/contents"
+	"Lara/models/reviewable"
 	"errors"
 	"fmt"
 )
 
-func GetContentInstance(contentType string) (models.Reviewable, error) {
+func GetContentInstance(contentType string) (reviewable.Reviewable, error) {
 	switch contentType {
 	case "books":
-		return &models.Book{}, nil
+		return &contents.Book{}, nil
 	case "movies":
-		return &models.Movie{}, nil
+		return &contents.Movie{}, nil
 	case "games":
-		return &models.Game{}, nil
+		return &contents.Game{}, nil
 	case "series":
-		return &models.Series{}, nil
+		return &contents.Series{}, nil
 	default:
 		return nil, fmt.Errorf("Invalid content type")
 	}
 }
 
-func ValidateRequiredFields(content models.Reviewable) error {
+func ValidateRequiredFields(content reviewable.Reviewable) error {
 	switch c := content.(type) {
-	case *models.Book:
+	case *contents.Book:
 		if c.Title == "" || c.Sinopsis == "" || c.Author == "" || c.ReleaseDate == "" || c.ISBN == "" {
 			return errors.New("Campos obrigatórios para o livro não estão preenchidos")
 		}
-	case *models.Movie:
+	case *contents.Movie:
 		if c.Title == "" || c.Sinopsis == "" || c.Director == "" || c.ReleaseDate == "" {
 			return errors.New("Campos obrigatórios para o filme não estão preenchidos")
 		}
-	case *models.Game:
+	case *contents.Game:
 		if c.Title == "" || c.Sinopsis == "" || c.Developer == "" || c.ReleaseDate == "" {
 			return errors.New("Campos obrigatórios para o jogo não estão preenchidos")
 		}

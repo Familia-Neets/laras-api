@@ -1,6 +1,9 @@
-package models
+package contents
 
 import (
+	"Lara/models/reviewable"
+	"Lara/models/users"
+
 	"gorm.io/gorm"
 )
 
@@ -12,10 +15,10 @@ type Game struct {
 	ReleaseDate string  `json:"release_date" gorm:"not null"`
 	Rating      float32 `json:"rating" gorm:"default:0"`
 
-	UsersStatus []*UserReviewable `json:"user_interactions" gorm:"polymorphic:Reviewable;"`
+	UsersStatus []*users.UserReviewable `json:"user_interactions" gorm:"polymorphic:Reviewable;"`
 
-	Genres  []*Genre  `json:"genres" gorm:"many2many:game_genres;"`
-	Reviews []*Review `json:"reviews" gorm:"polymorphic:Reviewable;"`
+	Genres  []*Genre             `json:"genres" gorm:"many2many:game_genres;"`
+	Reviews []*reviewable.Review `json:"reviews" gorm:"polymorphic:Reviewable;"`
 }
 
 func (g *Game) GetID() uint {
@@ -26,11 +29,11 @@ func (g *Game) GetType() string {
 	return "games"
 }
 
-func (g *Game) GetReviews() []*Review {
+func (g *Game) GetReviews() []*reviewable.Review {
 	return g.Reviews
 }
 
-func (g *Game) AppendReview(review *Review) {
+func (g *Game) AppendReview(review *reviewable.Review) {
 	g.Reviews = append(g.Reviews, review)
 }
 

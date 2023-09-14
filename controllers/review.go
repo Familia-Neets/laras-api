@@ -3,6 +3,8 @@ package controllers
 import (
 	"Lara/helpers"
 	"Lara/models"
+	"Lara/models/reviewable"
+	"Lara/models/users"
 	"net/http"
 	"strconv"
 
@@ -26,7 +28,7 @@ func (rc *ReviewController) CreateReview(c *gin.Context) {
 	}
 
 	// Criando review
-	var review models.Review
+	var review reviewable.Review
 	if err := c.BindJSON(&review); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
@@ -51,7 +53,7 @@ func (rc *ReviewController) CreateReview(c *gin.Context) {
 	}
 
 	// Verificando se o usuário existe
-	var user models.User
+	var user users.User
 	models.Db.Find(&user, review.UserID)
 	if user.ID == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User not found"})
@@ -59,7 +61,7 @@ func (rc *ReviewController) CreateReview(c *gin.Context) {
 	}
 
 	// Verificando se o usuário já avaliou o conteúdo
-	var existingReview models.Review
+	var existingReview reviewable.Review
 	models.Db.Where("user_id = ? AND reviewable_id = ? AND reviewable_type = ?", review.UserID, review.ReviewableID, review.ReviewableType).First(&existingReview)
 	if existingReview.ID != 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Review already exists"})
@@ -79,7 +81,7 @@ func (rc *ReviewController) CreateReview(c *gin.Context) {
 func (rc *ReviewController) ReadReview(c *gin.Context) {
 	id := c.Param("review_id")
 
-	var review models.Review
+	var review reviewable.Review
 	if err := models.Db.Preload("Likes").Find(&review, id).Error; err != nil {
 		c.JSON(400, gin.H{"message": "Review not found"})
 		return
@@ -93,7 +95,7 @@ func (rc *ReviewController) UpdateReview(c *gin.Context) {
 
 	id := c.Param("review_id")
 
-	var review models.Review
+	var review reviewable.Review
 	if err := models.Db.Find(&review, id).Error; err != nil {
 		c.JSON(400, gin.H{"message": "Review not found"})
 		return
@@ -121,7 +123,7 @@ func (rc *ReviewController) DeleteReview(c *gin.Context) {
 	user_id := c.MustGet("user_id").(uint)
 	review_id := c.Param("review_id")
 
-	var review models.Review
+	var review reviewable.Review
 	if err := models.Db.Where("id = ?", review_id).First(&review).Error; err != nil {
 		c.JSON(400, gin.H{"message": "Review not found"})
 		return
@@ -144,19 +146,19 @@ func (rc *ReviewController) LikeReview(c *gin.Context) {
 	review_id := c.Param("review_id")
 	user_id := c.MustGet("user_id")
 
-	var review models.Review
+	var review reviewable.Review
 	if err := models.Db.Find(&review, review_id).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Review not found"})
 		return
 	}
 
-	var like models.Like
+	var like reviewable.Like
 	if err := models.Db.Where("user_id = ? AND review_id = ?", user_id, review_id).First(&like).Error; err == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "You already liked this review"})
 		return
 	}
 
-	like = models.Like{
+	like = reviewable.Like{
 		UserID:   user_id.(uint),
 		ReviewID: review.ID,
 	}
@@ -173,13 +175,13 @@ func (rc *ReviewController) UnlikeReview(c *gin.Context) {
 	review_id := c.Param("review_id")
 	user_id := c.MustGet("user_id")
 
-	var review models.Review
+	var review reviewable.Review
 	if err := models.Db.Find(&review, review_id).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Review not found"})
 		return
 	}
 
-	var like models.Like
+	var like reviewable.Like
 	if err := models.Db.Where("user_id = ? AND review_id = ?", user_id, review_id).First(&like).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "You didn't like this review"})
 		return

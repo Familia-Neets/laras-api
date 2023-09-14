@@ -1,4 +1,4 @@
-package models
+package reviewable
 
 type Reviewable interface {
 	GetID() uint

@@ -3,6 +3,7 @@ package controllers
 import (
 	"Lara/helpers"
 	"Lara/models"
+	"Lara/models/users"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +17,7 @@ func NewUserController() *UserController {
 }
 
 func (uc *UserController) Register(c *gin.Context) {
-	var user models.User
+	var user users.User
 
 	err := c.BindJSON(&user)
 	if err != nil {
@@ -27,7 +28,7 @@ func (uc *UserController) Register(c *gin.Context) {
 	}
 
 	//Verifica se o email ou username já está cadastrado
-	var existingUser models.User
+	var existingUser users.User
 	err = models.Db.Where("email = ? OR username = ?", user.Email, user.Username).First(&existingUser).Error
 	if err == nil {
 		c.JSON(400, gin.H{
@@ -51,7 +52,7 @@ func (uc *UserController) Register(c *gin.Context) {
 }
 
 func (uc *UserController) Login(c *gin.Context) {
-	var user models.User
+	var user users.User
 
 	err := c.BindJSON(&user)
 	if err != nil {
@@ -61,7 +62,7 @@ func (uc *UserController) Login(c *gin.Context) {
 		return
 	}
 
-	var existingUser models.User
+	var existingUser users.User
 	err = models.Db.Where("email = ?", user.Email).First(&existingUser).Error
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -81,7 +82,7 @@ func (uc *UserController) Login(c *gin.Context) {
 }
 
 func (uc *UserController) ReadUser(c *gin.Context) {
-	var user models.User
+	var user users.User
 	user_id := c.Param("user_id")
 
 	models.Db.Preload("Reviews").Find(&user, user_id)
@@ -96,7 +97,7 @@ func (uc *UserController) ReadUser(c *gin.Context) {
 }
 
 func (uc *UserController) ReadUsers(c *gin.Context) {
-	var users []models.User
+	var users []users.User
 
 	err := models.Db.Find(&users).Error
 	if err != nil {
@@ -110,7 +111,7 @@ func (uc *UserController) ReadUsers(c *gin.Context) {
 }
 
 func (uc *UserController) UpdateUser(c *gin.Context) {
-	var user models.User
+	var user users.User
 	user_id := c.Param("user_id")
 
 	err := models.Db.Find(&user, user_id).Error
@@ -134,7 +135,7 @@ func (uc *UserController) UpdateUser(c *gin.Context) {
 }
 
 func (uc *UserController) DeleteUser(c *gin.Context) {
-	var user models.User
+	var user users.User
 	user_id := c.Param("user_id")
 
 	if err := models.Db.Find(&user, user_id).Error; err != nil {
@@ -149,7 +150,7 @@ func (uc *UserController) DeleteUser(c *gin.Context) {
 }
 
 func (uc *UserController) ReadUserReviews(c *gin.Context) {
-	var user models.User
+	var user users.User
 	user_id := c.Param("user_id")
 
 	err := models.Db.Preload("Reviews").Find(&user, user_id).Error
@@ -164,7 +165,7 @@ func (uc *UserController) ReadUserReviews(c *gin.Context) {
 }
 
 func (uc *UserController) ReadUserStats(c *gin.Context) {
-	var user models.User
+	var user users.User
 	user_id := c.Param("user_id")
 
 	err := models.Db.Preload("Reviews").Find(&user, user_id).Error
@@ -179,7 +180,7 @@ func (uc *UserController) ReadUserStats(c *gin.Context) {
 }
 
 func (uc *UserController) ReadUserLikes(c *gin.Context) {
-	var user models.User
+	var user users.User
 	user_id := c.Param("user_id")
 
 	err := models.Db.Preload("Likes").Find(&user, user_id).Error
@@ -214,7 +215,7 @@ func (uc *UserController) CreateContentInteraction(c *gin.Context) {
 	}
 
 	//Verifica se o usuário já interagiu com o conteúdo
-	var existingInteraction models.UserReviewable
+	var existingInteraction users.UserReviewable
 	if err = models.Db.Where("user_id = ? AND reviewable_id = ? AND reviewable_type = ?", user_id, content_id, content_type).First(&existingInteraction).Error; err == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"msg": "User already interacted with this content"})
 		return
@@ -222,7 +223,7 @@ func (uc *UserController) CreateContentInteraction(c *gin.Context) {
 
 	switch interaction_type {
 	case "planto":
-		if err = models.Db.Model(&models.User{}).Association("PlanTo").Append(&models.UserReviewable{
+		if err = models.Db.Model(&users.User{}).Association("PlanTo").Append(&users.UserReviewable{
 			UserID:         user_id,
 			ReviewableID:   content.GetID(),
 			ReviewableType: content.GetType(),
@@ -232,7 +233,7 @@ func (uc *UserController) CreateContentInteraction(c *gin.Context) {
 			return
 		}
 	case "current":
-		if err = models.Db.Model(&models.User{}).Association("Current").Append(&models.UserReviewable{
+		if err = models.Db.Model(&users.User{}).Association("Current").Append(&users.UserReviewable{
 			UserID:         user_id,
 			ReviewableID:   content.GetID(),
 			ReviewableType: content.GetType(),
@@ -242,7 +243,7 @@ func (uc *UserController) CreateContentInteraction(c *gin.Context) {
 			return
 		}
 	case "finished":
-		if err = models.Db.Model(&models.User{}).Association("Finished").Append(&models.UserReviewable{
+		if err = models.Db.Model(&users.User{}).Association("Finished").Append(&users.UserReviewable{
 			UserID:         user_id,
 			ReviewableID:   content.GetID(),
 			ReviewableType: content.GetType(),
@@ -262,7 +263,7 @@ func (uc *UserController) ReadContentInteraction(c *gin.Context) {
 	user_id := c.MustGet("user_id").(uint)
 	interaction_type := c.Param("interaction_type")
 
-	var user models.User
+	var user users.User
 	err := models.Db.Preload("Reviews").Preload("PlanTo").Preload("Current").Preload("Finished").Find(&user, user_id).Error
 	if err != nil {
 		c.JSON(400, gin.H{
